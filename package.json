@@ -1,0 +1,48 @@
+{
+  "name": "byteweaver",
+  "version": "1.0.0",
+  "description": "A powerful utility to weave files together with advanced filtering, minification and templating",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "bw": "./dist/bin/byteweaver.js",
+    "byteweaver": "./dist/bin/byteweaver.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/bin/byteweaver.ts",
+    "start": "node dist/bin/byteweaver.js",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "concat",
+    "merge",
+    "file",
+    "utility",
+    "cli",
+    "concatenate",
+    "weaver",
+    "byte",
+    "minify"
+  ],
+  "author": "Edgardo Velásquez",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://"
+  },
+  "bugs": {
+    "url": "https://"
+  },
+  "homepage": "https://",
+  "devDependencies": {
+    "@types/node": "^20.17.24",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  },
+  "engines": {
+    "node": ">=10.0.0"
+  },
+  "preferGlobal": true
+}
