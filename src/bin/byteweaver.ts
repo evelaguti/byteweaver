@@ -15,22 +15,16 @@ const DEFAULT_CONFIG: ByteWeaverOptions = {
 
 function parseArguments(): CliOptions {
   const args = process.argv.slice(2);
-  const options = {
-    ...DEFAULT_CONFIG,
-    directoryPath: '',
-    outputFile: ''
-  } as CliOptions;
-  
+  const options = { ...DEFAULT_CONFIG, directoryPath: '', outputFile: '' } as CliOptions;
   let i = 0;
+
   while (i < args.length) {
     const arg = args[i];
-    // Manejo de banderas combinadas (por ejemplo, -rmi)
     if (arg.startsWith('-') && !arg.startsWith('--') && arg.length > 2) {
-      // Es una combinación de opciones cortas
       const flags = arg.substring(1).split('');
       let requiresValue = false;
       let flagWithValue = '';
-      
+
       for (const flag of flags) {
         switch (flag) {
           case 'r':
@@ -74,8 +68,7 @@ function parseArguments(): CliOptions {
             process.exit(1);
         }
       }
-      
-      // Si una de las banderas requiere un valor, lo procesamos
+
       if (requiresValue) {
         if (i + 1 < args.length) {
           const value = args[i + 1];
@@ -90,16 +83,15 @@ function parseArguments(): CliOptions {
               options.outputTemplate = value;
               break;
           }
-          i += 2; // Avanzamos el índice para saltar el valor
+          i += 2;
         } else {
           console.error(`Error: -${flagWithValue} requires a value`);
           process.exit(1);
         }
       } else {
-        i++; // Si no requiere valor, solo avanzamos al siguiente argumento
+        i++;
       }
     } else {
-      // Procesamiento original para argumentos individuales
       switch (arg) {
         case '-r':
         case '--recursive':
@@ -227,40 +219,35 @@ function showUsage(): void {
     { flag: '--footer <text>', desc: 'Add footer text at the end of the output file' },
     { flag: '--image-mode <mode>', desc: 'Modo de procesamiento de imágenes: "base64-html", "base64-markdown" o "none"' },
     { flag: '-v, --version', desc: 'Show version information' },
-    { flag: '-h, --help', desc: 'Show this help message' }
+    { flag: '-h, --help', desc: 'Show this help message' },
+    { flag: '.bwignore', desc: 'File in the working directory to specify patterns to exclude (similar to .gitignore)' },
   ];
-  
+
   const examples = [
     { cmd: 'byteweaver src output.js', desc: '' },
     { cmd: 'byteweaver -r src output.js', desc: '' },
     { cmd: 'byteweaver -e "node_modules,*.json" src output.js', desc: '' },
     { cmd: 'byteweaver -r -i "*.js,*.ts" -e "test,*.md" src output.js', desc: '' },
     { cmd: 'byteweaver -m -r -i "*.js" src output.min.js', desc: '' },
-    { cmd: 'byteweaver --header="/* Copyright 2025 */" --footer="/* End of file */" src output.js', desc: '' }
+    { cmd: 'byteweaver --header="" --footer="" src output.js', desc: '' },
+    { cmd: 'byteweaver -r src output.js', desc: 'With .bwignore excluding node_modules and *.log' },
   ];
-  
+
   const combinedFlags = [
     { cmd: 'bw -rmi "*.ts" src output.js', desc: 'Equivalent to -r -m -i "*.ts"' },
-    { cmd: 'bw -rmd src output.js', desc: 'Equivalent to -r -m -d' }
+    { cmd: 'bw -rmd src output.js', desc: 'Equivalent to -r -m -d' },
   ];
-  
-  // Imprimir encabezado
+
   console.log('Usage: byteweaver [options] <directory-path> <output-file>');
-  
-  // Imprimir opciones
   console.log('Options:');
   options.forEach(opt => {
     console.log(` ${opt.flag.padEnd(25)} ${opt.desc}`);
   });
-  
-  // Imprimir información sobre banderas combinadas
   console.log('');
   console.log('Combined flags are supported:');
   combinedFlags.forEach(flag => {
     console.log(` ${flag.cmd.padEnd(30)} ${flag.desc}`);
   });
-  
-  // Imprimir ejemplos
   console.log('');
   console.log('Examples:');
   examples.forEach(ex => {

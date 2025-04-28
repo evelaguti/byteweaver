@@ -1,6 +1,6 @@
 {
   "name": "byteweaver",
-  "version": "1.1.0",
+  "version": "1.1.6",
   "description": "A powerful utility to weave files together with advanced filtering, minification and templating",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

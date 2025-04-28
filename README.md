@@ -34,6 +34,26 @@ bw [options] <directory-path> <output-file>
 - `--image-mode <mode>` - Image processing mode: "base64-html", "base64-markdown", or "none"
 - `-v, --version` - Show version information
 - `-h, --help` - Show help message
+- `.bwignore` - File in the working directory to specify patterns to exclude (similar to .gitignore)
+
+### .bwignore
+ByteWeaver supports a `.bwignore` file to exclude files and directories, similar to `.gitignore`. Place a `.bwignore` file in the directory where you run the command. Each line specifies a pattern to exclude. Lines starting with `#` are comments, and empty lines are ignored.
+
+Example `.bwignore`:
+```
+# Ignore node_modules directory
+node_modules
+
+# Ignore log files
+*.log
+
+# Ignore configuration files
+.env
+package.json
+package-lock.json
+```
+
+When a `.bwignore` file is present, ByteWeaver automatically excludes the specified patterns in addition to any patterns provided via the `-e` option.
 
 ### Examples
 Basic usage:
@@ -61,6 +81,17 @@ Exclude specific files or patterns:
 bw -e "node_modules,*.json" src output.js
 ```
 
+Use `.bwignore` to exclude files:
+```bash
+bw -r src output.js
+```
+*With a `.bwignore` file containing:*
+```
+node_modules
+*.log
+.env
+```
+
 Minify the output:
 ```bash
 bw -m src output.min.js
@@ -86,10 +117,11 @@ Process images as base64 in HTML:
 bw --image-mode="base64-html" images output.html
 ```
 
-Combine options:
+Combine options with `.bwignore`:
 ```bash
-bw -r -i "*.js,*.ts" -e "test,*.md,*.json" -m -d src output.min.js
+bw -r -i "*.js,*.ts" -e "test,*.md" -m -d src output.min.js
 ```
+*With a `.bwignore` file excluding `node_modules` and `*.json`.*
 
 **Important note for zsh users:** When using wildcards in exclude patterns, make sure to quote the patterns to prevent shell expansion:
 ```bash
@@ -149,6 +181,7 @@ npm run dev -- [options] <directory-path> <output-file>
 - Optional recursive directory traversal
 - Include only specific file types or patterns
 - Exclude files by name, path, or extension pattern
+- Support for `.bwignore` file to exclude patterns (similar to `.gitignore`)
 - Minify output to reduce size
 - Use templates to customize the output format
 - Clean output with proper file separation and comments

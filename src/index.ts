@@ -8,7 +8,6 @@ const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 const stat = promisify(fs.stat);
 
-// Extensiones de archivos de imagen comunes
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp'];
 
 function isImageFile(filePath: string): boolean {
@@ -31,22 +30,42 @@ function matchesPattern(filePath: string, patterns: string[], isExcludePattern: 
   });
 }
 
+async function readBwIgnore(directory: string): Promise<string[]> {
+  const bwIgnorePath = path.join(directory, '.bwignore');
+  try {
+    const bwIgnoreContent = await readFile(bwIgnorePath, 'utf8');
+    return bwIgnoreContent
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('#')); // Ignore empty lines and comments
+  } catch (error) {
+    return []; // Return empty array if .bwignore doesn't exist or can't be read
+  }
+}
+
 export async function getFilesRecursively(
   directory: string,
   excludePatterns: string[] = [],
   includePatterns: string[] = [],
   fileList: string[] = []
 ): Promise<string[]> {
+  // Read .bwignore file and add its patterns to excludePatterns
+  const bwIgnorePatterns = await readBwIgnore(directory);
+  const combinedExcludePatterns = [...excludePatterns, ...bwIgnorePatterns];
   const files = await readdir(directory);
+
   for (const file of files) {
     const filePath = path.join(directory, file);
+
+    // Verificar exclusión antes de stat
+    if (matchesPattern(filePath, combinedExcludePatterns, true)) {
+      continue;
+    }
+
     const stats = await stat(filePath);
     if (stats.isDirectory()) {
-      await getFilesRecursively(filePath, excludePatterns, includePatterns, fileList);
+      await getFilesRecursively(filePath, combinedExcludePatterns, includePatterns, fileList);
     } else {
-      if (matchesPattern(filePath, excludePatterns, true)) {
-        continue;
-      }
       if (includePatterns.length > 0 && !matchesPattern(filePath, includePatterns)) {
         continue;
       }
@@ -56,7 +75,6 @@ export async function getFilesRecursively(
   return fileList;
 }
 
-// Función para convertir una imagen a cadena base64
 async function imageToBase64(filePath: string): Promise<string> {
   const fileData = await readFile(filePath);
   const base64Data = fileData.toString('base64');
@@ -64,7 +82,6 @@ async function imageToBase64(filePath: string): Promise<string> {
   return `data:${mimeType};base64,${base64Data}`;
 }
 
-// Función para determinar el tipo MIME de un archivo
 function getMimeType(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase();
   switch (ext) {
@@ -83,20 +100,16 @@ function getMimeType(filePath: string): string {
       return 'application/octet-stream';
   }
 }
-/**
- * Improved minification function
- * Removes comments and excess whitespace
- */
+
 export function minifyContent(content: string): string {
   return content
-    .replace(/\/\/.*$/gm, '') // Remove single-line comments
-    .replace(/\/\*[\s\S]*?\*\//g, '') // Remove multi-line comments
-    .replace(/^\s*\n/gm, '') // Remove empty lines
-    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+    .replace(/\/\/.*$/gm, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^\s*\n/gm, '')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
-// Función para crear el contenido de salida según el formato
 function formatOutput(fileName: string, content: string, isImage: boolean): string {
   if (isImage) {
     return `\n\n<!-- Imagen: ${fileName} -->\n<img src="${content}" alt="${fileName}" />\n`;
@@ -169,10 +182,8 @@ export async function concatenateFiles(
       if (opts.debug) {
         console.log(` - ${filePath}`);
       }
-
       const fileName = path.basename(filePath);
       const isImage = isImageFile(filePath);
-
       try {
         if (isImage) {
           const imageContent = await imageToBase64(filePath);
@@ -191,8 +202,8 @@ export async function concatenateFiles(
       concatenatedContent += `\n\n${opts.footer}`;
     }
 
-    if(opts.minify){
-      concatenatedContent = minifyContent(concatenatedContent) 
+    if (opts.minify) {
+      concatenatedContent = minifyContent(concatenatedContent);
     }
 
     if (opts.outputTemplate) {
@@ -205,6 +216,7 @@ export async function concatenateFiles(
     }
 
     await writeFile(outputFile, concatenatedContent);
+
     return {
       success: true,
       fileCount: filePaths.length,
